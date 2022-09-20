@@ -1,4 +1,4 @@
-classdef BonusQUR3 < handle
+classdef UR3 < handle
     %when accessing properties in the functions make sure to do
     %"self.<property>"
     properties
