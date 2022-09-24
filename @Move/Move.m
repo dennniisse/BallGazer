@@ -1,5 +1,5 @@
 %% Still in development!
-%Version 2
+%Version 2.1
 %To add optional inputs see https://au.mathworks.com/help/matlab/ref/inputparser.html
 
 %%  Movement Class
@@ -79,10 +79,7 @@ classdef Move < handle
                 isthere_EE1 = true; 
             end
             
-            self.GetUR3Robot();
-            self.PlotAndColourRobot();%robot,workspace);
-
-            drawnow
+            MoveOneArm(self,model_Arm1,model_EE1,gripMode_EE1,q1_EE1,q1_Arm1,T2_Arm2,steps_Arm1,interpMethod_Arm1,Pause_Arm1,Pause_EE1);
         end
         
         function [qMatrixArm(steps,:),qMatrixEE(steps,:)] = MoveOneArm(self,robotArm,robotEE,gripMode,qEE1,q1,T2,steps,interpMethod,armPause,eePause)
@@ -96,7 +93,7 @@ classdef Move < handle
                 trajectory = ctraj(T1,T2,c_movement_steps); %ctraj pt1
                 qMatrixArm = dumE.model.ikcon(trajectory); %ctraj pt2
             elseif interpMethod == 'TVP'
-                qMatrixArm = TVP(q1,q2,c_movement_steps); %TVP
+                qMatrixArm = self.TVP(q1,q2,c_movement_steps); %TVP
             end
             
             %Plot & Update Robots
