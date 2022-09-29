@@ -1,18 +1,29 @@
 %% Still in development!
-%Version 2.1
-%To add optional inputs see https://au.mathworks.com/help/matlab/ref/inputparser.html
+%Only has Support for One Arm
+%TVP NOT working
+%Input Parser Removed
+
+%Version 3.0
 
 %%  Movement Class
 %   Control one or two arms simultaneously and their end effectors
 %   e.g.- Input Robot Arm, initial joint angles and final transform
 
 classdef Move < handle
-    properties
+    properties (Constant)
+        
+%         jtraj = 1;
+%         ctraj = 2;
+%         TVP = 3;
+    
+    end
+    
+    properties %Also set defaults
         %>Robot Models
         model_Arm1; model_EE1; model_Arm2; model_EE2;
         
         %>Gripper Mode ['Open' 'Close' 'Ignore']
-        expectedgripmode = {'Open','Close','Ignore'};
+%         expectedgripmode = {'Open','Close','Ignore'};
         gripModeEE1 = 'Ignore'; gripModeEE2 = 'Ignore'; %default
 
         %>Initial Joint Angles
@@ -21,106 +32,81 @@ classdef Move < handle
         %>Final Transform
         T2_Arm1; T2_Arm2;
 
-        %Interpolation Method ['jtraj','ctraj','TVP']
-        expectedInterp = {'jtraj','ctraj','TVP'};
+        %>Interpolation Method ['jtraj','ctraj','TVP']
+%         expectedInterp = {'jtraj','ctraj','TVP'};
         interpMethod_Arm1 = 'ctraj'; %default
         interpMethod_EE1 = 'ctraj'; 
         interpMethod_Arm2 = 'ctraj'; 
         interpMethod_EE2 = 'ctraj';
 
-        %>Animation Steps
-        steps_Arm1; steps_EE1; steps_Arm2; steps_EE2;
+%         %>Animation Steps
+        steps_Arm1=100; steps_EE1=100; steps_Arm2=100; steps_EE2=100;
+% 
+%         %>Animation Pause
+        animationPause = 0.02;
 
-        %>Animation Pause
-        pause_Arm1; pause_EE1; pause_Arm2; pause_EE2;
-
-        %>Final Joint Values (For After)
-        qMatrixFinal_Arm1;
-        qMatrixFinal_EE1;
-        qMatrixFinal_Arm2;
-        qMatrixFinal_EE2;
+        %>Final Joint Values Storage (For Next Movement)
+        qMatrixFinal_Arm1 = 0;
+        qMatrixFinal_EE1 = 0;
+        qMatrixFinal_Arm2 = 0;
+        qMatrixFinal_EE2 = 0;
 
         %>Decision Variables
-        oneOrTwo = 1; %One or two arms loaded?
         isthere_EE1 = false; %move End Effector for Arm 1
-        isthere_Arm2 = false; %move End Effector for Arm 1
-        isthere_EE2 = false; %move End Effector for Arm 1
+        isthere_Arm2 = false; %move Arm 2
+        isthere_EE2 = false; %move End Effector for Arm 2
 
         %> workspace
         workspace = [-0.6 0.6 -0.6 0.6 -0.2 1.1];   
         
     end
     
-    methods%% Class for UR3 robot simulation
-        function self = Move(model_Arm1,q1_Arm1,T2_Arm1,varargin)       
-            %%Input Parser
-            p = inputParser;
-
-            %Arm 1 Inputs
-            addRequired(p,'model_Arm1',model_Arm1);
-            addRequired(p,'q1_Arm1',q1_Arm1);
-            addRequired(p,'T2_Arm1',T2_Arm1);
-            addParameter(p,'interpMethod_Arm1',interpMethod_Arm1,...
-                 @(x) any(validatestring(x,expectedinterpMethod)));
-            
-            %End Effector 1 Inputs
-            addParameter(p,'model_EE1',model_Arm2);
-            addParameter(p,'q1_EE1',model_Arm2);
-            addParameter(p,'T2_EE1',model_Arm2);
-            addParameter(p,'gripModeEE1',gripModeEE1,...
-                 @(x) any(validatestring(x,expectedgripmode)));
-
-            %Parse the information through
-            parse(model_Arm1,q1_Arm1,T2_Arm1,varargin{:});
-            
-            %%Decision Making for Movement Function
-            %Check if End Effector 1 Exists
-            if exist('model_EE1','class') == 1 
-                isthere_EE1 = true; 
-            end
-            
-            MoveOneArm(self,model_Arm1,model_EE1,gripMode_EE1,q1_EE1,q1_Arm1,T2_Arm2,steps_Arm1,interpMethod_Arm1,Pause_Arm1,Pause_EE1);
+    methods
+        function self = Move()       
+        disp('I like to move it move it');
         end
-        
-        function [qMatrixArm(steps,:),qMatrixEE(steps,:)] = MoveOneArm(self,robotArm,robotEE,gripMode,qEE1,q1,T2,steps,interpMethod,armPause,eePause)
-        
-            T1 = robotArm.model.fkine(q1Arm);        
-            q2 = robotArm.model.ikcon(T2,q1); %Consider joint limits and initial joint angles
+    end
+    
+    methods (Static)
+        %% Move One Arm and EE
+        %Moves the arm to a position, brings gripper with it
+        function qMatrixFinal_Arm1 = OneArmT2(model_Arm1,model_EE1,q1_Arm1,T2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause)
             
-            if interpMethod == 'jtraq'
-                qMatrixArm = jtraj(q1,q2,correction_steps); %jtraj
-            elseif interpMethod == 'ctraq'
-                trajectory = ctraj(T1,T2,c_movement_steps); %ctraj pt1
-                qMatrixArm = dumE.model.ikcon(trajectory); %ctraj pt2
-            elseif interpMethod == 'TVP'
-                qMatrixArm = self.TVP(q1,q2,c_movement_steps); %TVP
+            T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);        
+            q2_Arm1 = model_Arm1.model.ikcon(T2_Arm1,q1_Arm1); %Consider joint limits and initial joint angles
+
+            if interpMethod_Arm1 == 1
+                qMatrixArm1 = jtraj(q1_Arm1,q2_Arm1,steps_Arm1); %jtraj
+            elseif interpMethod_Arm1 == 2
+                trajectory = ctraj(T1_Arm1,T2_Arm1,steps_Arm1); %ctraj pt1
+                qMatrixArm1 = model_Arm1.model.ikcon(trajectory,q1_Arm1); %ctraj pt2
+            elseif interpMethod_Arm1 == 3
+                qMatrixArm1 = TVP(q1_Arm1,q2_Arm1,steps_Arm1); %TVP
+            else
+                disp('Invalid interpMethod!');
             end
             
             %Plot & Update Robots
-            for i = 1:1:steps
-                location_EE = robotArm.model.fkine(qMatrixArm(i,:)); %Get new EE location
-                robotEE.base = robotArm.model.ikcon(location_EE); %Apply new EE location
-                if
-                robotArm.model.animate(qMatrixArm(i,:)); %Animate both
-                robotArm.model.animate(qMatrixArm(i,:));
-                robotArm.model.animate(qMatrixArm(i,:));
-                robotArm.model.animate(qMatrixArm(i,:));
-        
-                pause(animation_pause);
-                end
-            disp('Complete!');
+            disp('Moving Arm...');
+            for i = 1:1:steps_Arm1
+                EE_pos = qMatrixArm1(i,:);
+                model_Arm1.model.animate(qMatrixArm1(i,:)); %Animate Arm1
+                model_EE1.update_gripper(model_Arm1.model.fkine(EE_pos)); %Update and Animate EE1
+                pause(animationPause);
             end
+
+            qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
+            
+            disp('Complete!');
         end
         
-        %% Trapezoidal Velocity Profile Function 
-        %Input: (q1,q2,steps)
-        %Output: qMatrix
-        function qFunctionMatrix = TVP(self,q_a,q_b,steps_function)
-            s = lspb(0,1,steps_function); % First, create the scalar function
-            qFunctionMatrix = nan(steps_function,7); % Create memory allocation for variables
-                 for i = 1:1:steps_function
-                     qFunctionMatrix(i,:) = (1-s(i))*q_a + s(i)*q_b;    % Generate interpolated joint angles
-                 end
-        end       
+%         %% Return Current Joint Angles Function
+%         function [qMatrixFinal_Arm1,qMatrixFinal_EE1,qMatrixFinal_Arm2,qMatrixFinal_EE2] = ReturnCurrentJointAngles()
+%             
+%             disp(num2str(self.qMatrixFinal_Arm1));
+%             [qMatrixFinal_Arm1,qMatrixFinal_EE1,qMatrixFinal_Arm2,qMatrixFinal_EE2] = [self.qMatrixFinal_Arm1,self.qMatrixFinal_EE1,self.qMatrixFinal_Arm2,self.qMatrixFinal_EE2];
+%         
+%         end
     end
+   
 end
