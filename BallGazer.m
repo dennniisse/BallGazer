@@ -1,6 +1,6 @@
 %% 41014 SPR2022 - Ball Gazers
 %  Ashwin COBURN (12963690)
-%  Denisse FERNANDEZ (xxxxxxxx)
+%  Denisse FERNANDEZ (13214489)
 %  Hee CHAN-KWON (xxxxxxxx)
 
 close all

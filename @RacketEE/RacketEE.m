@@ -1,4 +1,4 @@
-classdef UR3 < handle
+classdef RacketEE < handle
     properties
         %> Robot model
         model;
@@ -8,8 +8,8 @@ classdef UR3 < handle
       
     end
     
-    methods%% Class for UR3 robot simulation
-        function self = UR3(toolModelAndTCPFilenames)
+    methods%% Class for RacketEE robot simulation
+        function self = RacketEE(toolModelAndTCPFilenames)
             if 0 < nargin
                 if length(toolModelAndTCPFilenames) ~= 2
                     error('Please pass a cell with two strings, toolModelFilename and toolCenterPointFilename');
@@ -18,23 +18,18 @@ classdef UR3 < handle
                 self.toolParametersFilenamure = toolModelAndTCPFilenames{2};
             end
             
-            self.GetUR3Robot();
+            self.GetRacketEERobot();
             self.PlotAndColourRobot();%robot,workspace);
 
             drawnow
         end
 
-        %% GetUR3Robot
-        % Given a name (optional), create and return a UR3 robot model
-        function GetUR3Robot(self)
+        %% GetRacketEERobot
+        % Given a name (optional), create and return a RacketEE robot model
+        function GetRacketEERobot(self)
             pause(0.001);
-            name = ['UR3_',datestr(now,'yyyymmddTHHMMSSFFF')];
-            L1 = Link('d',0.1519,'a',0,'alpha',pi/2,'qlim',deg2rad([-360 360]), 'offset',0);
-            L2 = Link('d',0,'a',-0.24365,'alpha',0,'qlim', deg2rad([-360 360]), 'offset',0);
-            L3 = Link('d',0,'a',-0.21325,'alpha',0,'qlim', deg2rad([-360 360]), 'offset', 0);
-            L4 = Link('d',0.11235,'a',0,'alpha',pi/2,'qlim',deg2rad([-360 360]),'offset', 0);
-            L5 = Link('d',0.08535,'a',0,'alpha',-pi/2,'qlim',deg2rad([-360,360]), 'offset',0);
-            L6 = Link('d',0.0819,'a',0,'alpha',0,'qlim',deg2rad([-360,360]), 'offset', 0);
+            name = ['RacketEE_',datestr(now,'yyyymmddTHHMMSSFFF')];
+            
              
             self.model = SerialLink([L1 L2 L3 L4 L5 L6],'name',name);
         end
@@ -44,7 +39,7 @@ classdef UR3 < handle
         % colour them in if data is available 
         function PlotAndColourRobot(self)%robot,workspace)
             for linkIndex = 0:self.model.n
-                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3link_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>                
+                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['RacketEElink_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>                
                 self.model.faces{linkIndex + 1} = faceData;
                 self.model.points{linkIndex + 1} = vertexData;
             end
