@@ -51,11 +51,6 @@ classdef Move < handle
         qMatrixFinal_Arm2 = 0;
         qMatrixFinal_EE2 = 0;
 
-        %>Decision Variables
-        isthere_EE1 = false; %move End Effector for Arm 1
-        isthere_Arm2 = false; %move Arm 2
-        isthere_EE2 = false; %move End Effector for Arm 2
-
         %> workspace
         workspace = [-0.6 0.6 -0.6 0.6 -0.2 1.1];   
         
@@ -63,14 +58,15 @@ classdef Move < handle
     
     methods
         function self = Move()       
-        disp('I like to move it move it');
+        disp('Move.m: I like to move it move it!');
+        disp('Move.m: Use my functions!');
         end
     end
     
     methods (Static)
-        %% Move One Arm and EE
+        %% Move One Arm and EE [T2]
         %Moves the arm to a position, brings gripper with it
-        function qMatrixFinal_Arm1 = OneArmT2(model_Arm1,model_EE1,q1_Arm1,T2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause)
+        function qMatrixFinal_Arm1 = OneArmAndEE_T2(model_Arm1,model_EE1,q1_Arm1,T2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause)
             
             T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);        
             q2_Arm1 = model_Arm1.model.ikcon(T2_Arm1,q1_Arm1); %Consider joint limits and initial joint angles
@@ -99,6 +95,229 @@ classdef Move < handle
             
             disp('Complete!');
         end
+        
+        %% Move One Arm [T2]
+        %Moves the arm to a position, no gripper robot attached
+        function qMatrixFinal_Arm1 = OneArm_T2(model_Arm1,q1_Arm1,T2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause)
+            
+            T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);        
+            q2_Arm1 = model_Arm1.model.ikcon(T2_Arm1,q1_Arm1); %Consider joint limits and initial joint angles
+
+            if interpMethod_Arm1 == 1
+                qMatrixArm1 = jtraj(q1_Arm1,q2_Arm1,steps_Arm1); %jtraj
+            elseif interpMethod_Arm1 == 2
+                trajectory = ctraj(T1_Arm1,T2_Arm1,steps_Arm1); %ctraj pt1
+                qMatrixArm1 = model_Arm1.model.ikcon(trajectory,q1_Arm1); %ctraj pt2
+            elseif interpMethod_Arm1 == 3
+                qMatrixArm1 = TVP(q1_Arm1,q2_Arm1,steps_Arm1); %TVP
+            else
+                disp('Invalid interpMethod!');
+            end
+            
+            %Plot & Update Robots
+            disp('Moving Arm...');
+            for i = 1:1:steps_Arm1
+                model_Arm1.model.animate(qMatrixArm1(i,:)); %Animate Arm1
+                pause(animationPause);
+            end
+
+            qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
+            
+            disp('Complete!');
+        end
+        
+        %% Move One Arm [q2]
+        %Moves the arm to a position, no gripper robot attached
+        %RECOMMENDED: Use jtraj or TVP
+        function qMatrixFinal_Arm1 = OneArm_q2(model_Arm1,q1_Arm1,q2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,considerJointAngles)
+            
+            if considerJointAngles == true
+                T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);        
+                T2_Arm1 = model_Arm1.model.fkine(q2_Arm1);
+                q2_Arm1 = model_Arm1.model.ikcon(T2_Arm1,q1_Arm1); %Consider joint limits and initial joint angles
+            else
+                T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);
+                T2_Arm1 = model_Arm1.model.fkine(q2_Arm1);
+            end
+
+            if interpMethod_Arm1 == 1
+                qMatrixArm1 = jtraj(q1_Arm1,q2_Arm1,steps_Arm1); %jtraj
+            elseif interpMethod_Arm1 == 2
+                trajectory = ctraj(T1_Arm1,T2_Arm1,steps_Arm1); %ctraj pt1
+                qMatrixArm1 = model_Arm1.model.ikcon(trajectory,q1_Arm1); %ctraj pt2
+            elseif interpMethod_Arm1 == 3
+                qMatrixArm1 = TVP(q1_Arm1,q2_Arm1,steps_Arm1); %TVP
+            else
+                disp('Invalid interpMethod!');
+            end
+            
+            %Plot & Update Robots
+            disp('Moving Arm...');
+            for i = 1:1:steps_Arm1
+                model_Arm1.model.animate(qMatrixArm1(i,:)); %Animate Arm1
+                pause(animationPause);
+            end
+
+            qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
+            
+            disp('Complete!');
+        end
+        
+        %% Move One Arm [CONTROLLER]
+        %Moves the arm to a position, no gripper robot attached
+        function qMatrixFinal_Arm1 = OneArm_CONTROLLER_IRB120(model_Arm1,q1_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,axes,buttons,povs)
+            
+            %Copy Joint Angles
+            q2_Arm1 = q1_Arm1;
+            
+            %Controller Parameters
+            B = 2;
+            Joy_X_Axes_Left = 1; %-1 to 1
+            Joy_Y_Axes_Left = 2; %-1 to 1
+            Triggers = 3; % -0.996 to 0.996
+            Joy_X_Axes_Right = 4; %-1 to 1
+            Joy_Y_Axes_Right = 5; %-1 to 1
+            Axes_Deadzone = 0.24; %Default 0.15 to 0.20
+            Triggers_Deadzone = 0.1; %Unknown Default
+            Joint_Movement_Amount = deg2rad(10); %3 is ok
+            
+            %RIGHT JOYSTICK: 
+            %   X: Rotate Around Base (Joint 1)
+            %   Y: Rotate Up/Down (Joint 2)
+            if axes(Joy_X_Axes_Right)>= Axes_Deadzone
+%                 disp('CW+');
+                if q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount > deg2rad(165)
+                    disp('Joint 1 Limit Reached!');
+                else
+                    q2_Arm1(1) = q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount;
+                end
+            elseif axes(Joy_X_Axes_Right)<= -Axes_Deadzone
+%                 disp('CCW-');
+                if q2_Arm1(1) - (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount < deg2rad(-145) %-165
+                    disp('Joint 1 Limit Reached!');
+                else
+                    q2_Arm1(1) = q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount;
+                end         
+            end
+            if axes(Joy_Y_Axes_Right)>= Axes_Deadzone
+%                 disp('Y+');
+                if q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount < deg2rad(-110)
+                    disp('Joint 2 Limit Reached!');
+                else
+                    q2_Arm1(2) = q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount;
+                end
+            elseif axes(Joy_Y_Axes_Right)<= -Axes_Deadzone
+%                 disp('Y-');
+                if q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount > deg2rad(110)
+                    disp('Joint 2 Limit Reached!');
+                else
+                    q2_Arm1(2) = q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount;
+                end
+            end
+            
+              %TRIGGERS: 
+              %     L/R: Rotate Up/Down (Joint 3)
+            if axes(Triggers)>= Triggers_Deadzone
+%                 disp('Z-');
+                if q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount > deg2rad(110)
+                    disp('Joint 3 Limit Reached!');
+                else
+                    q2_Arm1(3) = q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount;
+                end
+            elseif axes(Triggers)<= -Triggers_Deadzone
+%                 disp('Z+');
+                if q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount < deg2rad(-70)
+                    disp('Joint 3 Limit Reached!');
+                else
+                    q2_Arm1(3) = q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount;
+                end
+            end
+            
+            %LEFT JOYSTICK: Rotate End Effector
+            %   X: Rotate EE CW/CCW (Joint 4)
+            %   Y: Rotate EE Up/Down (Joint 5)
+            if axes(Joy_X_Axes_Left)>= Axes_Deadzone
+%                 disp('R+');
+                if q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount < deg2rad(-160)
+                    disp('Joint 4 Limit Reached!');
+                else
+                    q2_Arm1(4) = q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount;
+                end
+            elseif axes(Joy_X_Axes_Left)<= -Axes_Deadzone
+%                 disp('R-');
+                if q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount > deg2rad(160)
+                    disp('Joint 4 Limit Reached!');
+                else
+                    q2_Arm1(4) = q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount;
+                end
+            end
+            if axes(Joy_Y_Axes_Left)>= Axes_Deadzone
+%                 disp('Y+');
+                if q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount > deg2rad(120)
+                    disp('Joint 5 Limit Reached!');
+                else
+                    q2_Arm1(5) = q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount;
+                end
+                
+            elseif axes(Joy_Y_Axes_Left)<= -Axes_Deadzone
+%                 disp('Y-');
+                if q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount < deg2rad(-120)
+                    disp('Joint 5 Limit Reached!');
+                else
+                    q2_Arm1(5) = q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount;
+                end
+            end
+            disp(['q2:', num2str(rad2deg(q2_Arm1))]);
+            
+            %Clear Selection and Reset Joint Angles
+            if buttons(B) == 1
+                disp('B: RESET Activated!');
+                q2_Arm1 = zeros([1 numel(q1_Arm1)]);
+                T2_Arm1 = model_Arm1.model.fkine(q2_Arm1);
+                animationPause = 0.01;
+                steps_Arm1 = 80;
+            end
+            
+            %%Find Current Transform (Experimental not recommended)
+            T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);
+            T2_Arm1 = model_Arm1.model.fkine(q2_Arm1);
+            
+            %Extract and Note Movement Information
+%             disp('Current Movement (m/degrees):');
+%             Arm1_Rotations1 = tr2rpy(T1_Arm1,'deg');
+%             Arm1_Rotations2 = tr2rpy(T2_Arm1,'deg');
+%             disp(['Roll = ', num2str(Arm1_Rotations1(1) - Arm1_Rotations2(1))]);
+%             disp(['Pitch = ', num2str(Arm1_Rotations1(2) - Arm1_Rotations2(2))]);
+%             disp(['Yaw = ', num2str(Arm1_Rotations1(3) - Arm1_Rotations2(3))]);
+%             disp(['X = ', num2str(T1_Arm1(1,4) - T2_Arm1(1,4))]);
+%             disp(['Y = ', num2str(T1_Arm1(2,4) - T2_Arm1(2,4))]);
+%             disp(['Z = ', num2str(T1_Arm1(3,4) - T2_Arm1(3,4))]);          
+
+            if interpMethod_Arm1 == 1
+                qMatrixArm1 = jtraj(q1_Arm1,q2_Arm1,steps_Arm1); %jtraj
+            elseif interpMethod_Arm1 == 2
+                trajectory = ctraj(T1_Arm1,T2_Arm1,steps_Arm1); %ctraj pt1
+                qMatrixArm1 = model_Arm1.model.ikcon(trajectory,q1_Arm1); %ctraj pt2
+            elseif interpMethod_Arm1 == 3
+                qMatrixArm1 = TVP(q1_Arm1,q2_Arm1,steps_Arm1); %TVP
+            else
+                disp('Invalid interpMethod!');
+            end
+            
+            %Plot & Update Robots
+%             disp('Moving Arm...');
+            for i = 1:1:steps_Arm1
+                model_Arm1.model.animate(qMatrixArm1(i,:)); %Animate Arm1
+                pause(animationPause);
+            end
+
+            qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
+            
+%             disp('Complete!');
+        end
+        
+        
+        
         
 %         %% Return Current Joint Angles Function
 %         function [qMatrixFinal_Arm1,qMatrixFinal_EE1,qMatrixFinal_Arm2,qMatrixFinal_EE2] = ReturnCurrentJointAngles()
