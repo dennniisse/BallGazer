@@ -2,16 +2,18 @@ classdef RacketEE < handle
     properties
         %> Robot model
         model;
-        gripperBase = eye(4);
+        eeBase = [0 0 0];
         %> workspace
         workspace = [-0.6 0.6 -0.6 0.6 -0.2 1.1];
         
     end
     
     methods%% Class for RacketEE robot simulation
-        function self = RacketEE(gripperBase)            
+        function self = RacketEE(eeBase) 
+            self.eeBase = eeBase;
             self.GetRacketEERobot();
-            self.gripperBase = gripperBase;
+            
+            disp(['eeBase: ',num2str(self.eeBase)]);
         end
         
         %% GetRacketEERobot
@@ -19,14 +21,16 @@ classdef RacketEE < handle
         function GetRacketEERobot(self)
             L(1) = Link([0 0 0 0 1 0]);
             self.model = SerialLink(L);
-            self.model.base = self.gripperBase;
+            
             for linkIndex = 1:self.model.n
                 [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['pingpong.ply'],'tri'); %#ok<AGROW>
                 self.model.faces{linkIndex + 1} = faceData;
                 self.model.points{linkIndex + 1} = vertexData;
             end
             % gripper open as wide as possible
+            self.model.base = self.model.base * transl([self.eeBase(1) self.eeBase(2) self.eeBase(3)]);
             self.model.plot3d(zeros(1,self.model.n),'workspace',self.workspace);
+            
             %             self.model.teach();
             %             if isempty(findobj(get(gca,'Children'),'Type','Light'))
             %                 camlight

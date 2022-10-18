@@ -2,6 +2,7 @@ classdef UR3 < handle
     properties
         %> Robot model
         model;
+        racketee;
         
         %> workspace
         workspace = [-1 1 -1 1 0 1.5];   
@@ -27,7 +28,9 @@ classdef UR3 < handle
                 display([num2str(self.model.base(1,4)),'  ', ...
                 num2str(self.model.base(2,4)),'  ', ...
                 num2str(self.model.base(3,4))]);
-  
+            eebase = self.model.fkine(self.model.getpos());
+            eebase = eebase(1:3,4)';
+            self.racketee = RacketEE(eebase);
             drawnow
             disp('Complete!');
         end
@@ -56,7 +59,7 @@ classdef UR3 < handle
         % colour them in if data is available 
         function PlotAndColourRobot(self)%robot,workspace)
             for linkIndex = 0:self.model.n
-                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3link_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>                
+                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>                
                 self.model.faces{linkIndex + 1} = faceData;
 %                 if linkIndex == self.model.n
 %                     vertexData(:,3) = vertexData(:,3) - 0.092; %Offset End Effector
@@ -86,6 +89,8 @@ classdef UR3 < handle
                     continue;
                 end
             end
+            
+            hold on;
         end        
     end
 end
