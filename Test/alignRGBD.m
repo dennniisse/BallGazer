@@ -1,3 +1,5 @@
+% https://www.codefull.net/2016/03/align-depth-and-color-frames-depth-and-rgb-registration/
+
 function [aligned] = ...
     alignRGBDD(depthData, rgbData,...
     fx_d, fy_d, cx_d, cy_d,...
@@ -47,3 +49,5 @@ for v = 1 : (depthHeight)
         aligned(v,u,6) = single(rgbData(y, x, 3));
     end
 end
+
+

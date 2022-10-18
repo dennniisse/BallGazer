@@ -11,7 +11,7 @@ depthData = readImage(depthMsg);
 rgbSub = rossubscriber('/camera/color/image_raw');
 rgbMsg = receive(rgbSub,10); 
 rgbData = readImage(rgbMsg);
-rgbScaled = rgbData;%imresize(rgbData, size(depthData));
+rgbScaled = imresize(rgbData, size(depthData));
 figure(1);
 title('RGB');
 imshow(rgbScaled);
@@ -61,9 +61,15 @@ cx_rgb = rgbIntrinsic.K(3);
 cy_rgb = rgbIntrinsic.K(6);
 
 depthIntrinsicSub = rossubscriber('/camera/depth/camera_info');
-depthIntrinsic = receive(depthIntrinsicSub,2);
-fx_depth = depthIntrinsic.K(1);
-fy_depth = depthIntrinsic.K(5);
-cx_depth = depthIntrinsic.K(3);
-cy_depth = depthIntrinsic.K(6);
+dIntrinsic = receive(depthIntrinsicSub,2);
+fx_d = dIntrinsic.K(1);
+fy_d = dIntrinsic.K(5);
+cx_d = dIntrinsic.K(3);
+cy_d = dIntrinsic.K(6);
 
+sub = rossubscriber('/camera/extrinsics/depth_to_color');
+extrinsics  = receive(exSub,0.5);
+alignRGBDD(depthData, rgbData,...
+    fx_d, fy_d, cx_d, cy_d,...
+    fx_rgb, fy_rgb, cx_rgb, cy_rgb,...
+    extrinsics)

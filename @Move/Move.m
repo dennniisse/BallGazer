@@ -11,32 +11,7 @@ classdef Move < handle
     end
     
     properties %Also set defaults
-        %>Robot Models
-        model_Arm1; model_EE1; model_Arm2; model_EE2;
         
-        %>Gripper Mode ['Open' 'Close' 'Ignore']
-%         expectedgripmode = {'Open','Close','Ignore'};
-        gripModeEE1 = 'Ignore'; gripModeEE2 = 'Ignore'; %default
-
-        %>Initial Joint Angles
-        q1_Arm1; q1_Arm2;
-
-        %>Final Transform
-        T2_Arm1; T2_Arm2;
-
-        %>Interpolation Method ['jtraj','ctraj','TVP']
-%         expectedInterp = {'jtraj','ctraj','TVP'};
-        interpMethod_Arm1 = 'ctraj'; %default
-        interpMethod_EE1 = 'ctraj'; 
-        interpMethod_Arm2 = 'ctraj'; 
-        interpMethod_EE2 = 'ctraj';
-
-%         %>Animation Steps
-        steps_Arm1=100; steps_EE1=100; steps_Arm2=100; steps_EE2=100;
-% 
-%         %>Animation Pause
-        animationPause = 0.02;
-
         %>Final Joint Values Storage (For Next Movement)
         qMatrixFinal_Arm1 = 0;
         qMatrixFinal_EE1 = 0;
@@ -44,7 +19,7 @@ classdef Move < handle
         qMatrixFinal_EE2 = 0;
 
         %> workspace
-        workspace = [-0.6 0.6 -0.6 0.6 -0.2 1.1];   
+        workspace = [-0.6 0.6 -0.6 0.6 -0.2 1.1];
         
     end
     
@@ -59,7 +34,7 @@ classdef Move < handle
         %% Move One Arm and EE [T2]
         %Moves the arm to a position, brings gripper with it
         function qMatrixFinal_Arm1 = OneArmAndEE_T2(model_Arm1,model_EE1,q1_Arm1,T2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause)
-            
+
             T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);        
             q2_Arm1 = model_Arm1.model.ikcon(T2_Arm1,q1_Arm1); %Consider joint limits and initial joint angles
 
@@ -84,7 +59,8 @@ classdef Move < handle
             end
 
             qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
-            
+            eeBase = model_Arm1.model.fkine(model_Arm1.model.getpos);
+            racketEE = RacketEE(eeBase);
             disp('Complete!');
         end
         
@@ -303,7 +279,6 @@ classdef Move < handle
             for i = 1:1:steps_Arm1
                 model_Arm1.model.animate(qMatrixArm1(i,:)); %Animate Arm1
                 pause(animationPause);
-                pause(2);
             end
 
             qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
