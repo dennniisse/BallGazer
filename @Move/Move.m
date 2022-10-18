@@ -59,7 +59,8 @@ classdef Move < handle
             end
 
             qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
-            
+            eeBase = model_Arm1.model.fkine(model_Arm1.model.getpos);
+            racketEE = RacketEE(eeBase);
             disp('Complete!');
         end
         

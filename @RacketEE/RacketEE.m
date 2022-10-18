@@ -9,8 +9,9 @@ classdef RacketEE < handle
     end
     
     methods%% Class for RacketEE robot simulation
-        function self = RacketEE()            
+        function self = RacketEE(gripperBase)            
             self.GetRacketEERobot();
+            self.gripperBase = gripperBase;
         end
         
         %% GetRacketEERobot

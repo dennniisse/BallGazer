@@ -27,7 +27,7 @@ classdef UR3 < handle
                 display([num2str(self.model.base(1,4)),'  ', ...
                 num2str(self.model.base(2,4)),'  ', ...
                 num2str(self.model.base(3,4))]);
-
+  
             drawnow
             disp('Complete!');
         end
