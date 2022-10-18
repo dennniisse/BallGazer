@@ -9,3 +9,11 @@ clc
 hold on;
 % set(0,'DefaultFigureWindowStyle','docked');
 
+disp('ENVIRONMENT SPAWNING...');
+PlaceObject("enviornment_SnC.ply",[0,0,0]);
+% disp('ENVIRONMENT SPAWNING...');
+test = UR3([0,0,0.9397]);
+
+
+
+test.model.teach();
