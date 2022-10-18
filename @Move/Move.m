@@ -1,13 +1,5 @@
-%% Still in development!
-%Only has Support for One Arm
-%TVP NOT working
-%Input Parser Removed
-
-%Version 3.0
-
-%%  Movement Class
-%   Control one or two arms simultaneously and their end effectors
-%   e.g.- Input Robot Arm, initial joint angles and final transform
+%%  Movement Class (Version 4.0)
+%   Control one or two arms and their end effectors, anything that moves
 
 classdef Move < handle
     properties (Constant)
@@ -128,7 +120,6 @@ classdef Move < handle
         
         %% Move One Arm [q2]
         %Moves the arm to a position, no gripper robot attached
-        %RECOMMENDED: Use jtraj or TVP
         function qMatrixFinal_Arm1 = OneArm_q2(model_Arm1,q1_Arm1,q2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,considerJointAngles)
             
             if considerJointAngles == true
@@ -165,10 +156,13 @@ classdef Move < handle
         
         %% Move One Arm [CONTROLLER]
         %Moves the arm to a position, no gripper robot attached
-        function qMatrixFinal_Arm1 = OneArm_CONTROLLER_IRB120(model_Arm1,q1_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,axes,buttons,povs)
+        function qMatrixFinal_Arm1 = OneArm_CONTROLLER(model_Arm1,q1_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,axes,buttons,povs)
             
             %Copy Joint Angles
             q2_Arm1 = q1_Arm1;
+            
+            %Save Joint Limits
+            qlimits = model_Arm1.model.qlim;
             
             %Controller Parameters
             B = 2;
@@ -186,14 +180,14 @@ classdef Move < handle
             %   Y: Rotate Up/Down (Joint 2)
             if axes(Joy_X_Axes_Right)>= Axes_Deadzone
 %                 disp('CW+');
-                if q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount > deg2rad(165)
+                if q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount > qlimits(1,2)
                     disp('Joint 1 Limit Reached!');
                 else
                     q2_Arm1(1) = q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount;
                 end
             elseif axes(Joy_X_Axes_Right)<= -Axes_Deadzone
 %                 disp('CCW-');
-                if q2_Arm1(1) - (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount < deg2rad(-145) %-165
+                if (q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount) < qlimits(1,1)
                     disp('Joint 1 Limit Reached!');
                 else
                     q2_Arm1(1) = q2_Arm1(1) + (axes(Joy_X_Axes_Right)/1)*Joint_Movement_Amount;
@@ -201,14 +195,14 @@ classdef Move < handle
             end
             if axes(Joy_Y_Axes_Right)>= Axes_Deadzone
 %                 disp('Y+');
-                if q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount < deg2rad(-110)
+                if q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount < qlimits(2,2)
                     disp('Joint 2 Limit Reached!');
                 else
                     q2_Arm1(2) = q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount;
                 end
             elseif axes(Joy_Y_Axes_Right)<= -Axes_Deadzone
 %                 disp('Y-');
-                if q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount > deg2rad(110)
+                if q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount > qlimits(2,1)
                     disp('Joint 2 Limit Reached!');
                 else
                     q2_Arm1(2) = q2_Arm1(2) - (axes(Joy_Y_Axes_Right)/1)*Joint_Movement_Amount;
@@ -219,14 +213,14 @@ classdef Move < handle
               %     L/R: Rotate Up/Down (Joint 3)
             if axes(Triggers)>= Triggers_Deadzone
 %                 disp('Z-');
-                if q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount > deg2rad(110)
+                if q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount > qlimits(3,2)
                     disp('Joint 3 Limit Reached!');
                 else
                     q2_Arm1(3) = q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount;
                 end
             elseif axes(Triggers)<= -Triggers_Deadzone
 %                 disp('Z+');
-                if q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount < deg2rad(-70)
+                if q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount < qlimits(3,1)
                     disp('Joint 3 Limit Reached!');
                 else
                     q2_Arm1(3) = q2_Arm1(3) + (axes(Triggers)/1)*Joint_Movement_Amount;
@@ -238,14 +232,14 @@ classdef Move < handle
             %   Y: Rotate EE Up/Down (Joint 5)
             if axes(Joy_X_Axes_Left)>= Axes_Deadzone
 %                 disp('R+');
-                if q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount < deg2rad(-160)
+                if q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount < qlimits(4,2)
                     disp('Joint 4 Limit Reached!');
                 else
                     q2_Arm1(4) = q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount;
                 end
             elseif axes(Joy_X_Axes_Left)<= -Axes_Deadzone
 %                 disp('R-');
-                if q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount > deg2rad(160)
+                if q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount > qlimits(4,1)
                     disp('Joint 4 Limit Reached!');
                 else
                     q2_Arm1(4) = q2_Arm1(4) - (axes(Joy_X_Axes_Left)/1)*Joint_Movement_Amount;
@@ -253,7 +247,7 @@ classdef Move < handle
             end
             if axes(Joy_Y_Axes_Left)>= Axes_Deadzone
 %                 disp('Y+');
-                if q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount > deg2rad(120)
+                if q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount > qlimits(5,2)
                     disp('Joint 5 Limit Reached!');
                 else
                     q2_Arm1(5) = q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount;
@@ -261,7 +255,7 @@ classdef Move < handle
                 
             elseif axes(Joy_Y_Axes_Left)<= -Axes_Deadzone
 %                 disp('Y-');
-                if q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount < deg2rad(-120)
+                if q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount < qlimits(5,1)
                     disp('Joint 5 Limit Reached!');
                 else
                     q2_Arm1(5) = q2_Arm1(5) + (axes(Joy_Y_Axes_Left)/1)*Joint_Movement_Amount;
@@ -309,6 +303,7 @@ classdef Move < handle
             for i = 1:1:steps_Arm1
                 model_Arm1.model.animate(qMatrixArm1(i,:)); %Animate Arm1
                 pause(animationPause);
+                pause(2);
             end
 
             qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
