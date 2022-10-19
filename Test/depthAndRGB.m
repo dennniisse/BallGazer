@@ -12,8 +12,9 @@ rgbSub = rossubscriber('/camera/color/image_raw');
 rgbMsg = receive(rgbSub,10); 
 rgbData = readImage(rgbMsg);
 rgbScaled = imresize(rgbData, size(depthData));
-figure(1);
-title('RGB');
+figure('NumberTitle', 'off', 'Name', 'RGB Image');
+hold on;
+
 imshow(rgbScaled);
 axis on; 
 hold on;
@@ -43,9 +44,7 @@ X = round(bc(1))
 Y = round(bc(2))
 Z = depthData(X:Y)
 hold off;
-
-figure(2)
-title('Depth');
+figure('NumberTitle', 'off', 'Name', 'Depth Image');
 imshow(depthData);
 hold on;
 plot(bc(1),bc(2), '-m+')
@@ -67,9 +66,9 @@ fy_d = dIntrinsic.K(5);
 cx_d = dIntrinsic.K(3);
 cy_d = dIntrinsic.K(6);
 
-sub = rossubscriber('/camera/extrinsics/depth_to_color');
-extrinsics  = receive(exSub,0.5);
-alignRGBDD(depthData, rgbData,...
-    fx_d, fy_d, cx_d, cy_d,...
-    fx_rgb, fy_rgb, cx_rgb, cy_rgb,...
-    extrinsics)
+% sub = rossubscriber('/camera/extrinsics/depth_to_color');
+% extrinsics  = receive(exSub,0.5);
+% alignRGBDD(depthData, rgbData,...
+%     fx_d, fy_d, cx_d, cy_d,...
+%     fx_rgb, fy_rgb, cx_rgb, cy_rgb,...
+%     extrinsics)
