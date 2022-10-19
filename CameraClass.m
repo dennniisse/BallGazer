@@ -20,8 +20,8 @@ classdef CameraClass < handle
         function self = CameraClass()
             self.getDepthData();
             self.ColourDetection();
-            self.plotDepthImage();
-            self.manualDepthSelection();
+%             self.plotDepthImage();
+%             self.manualDepthSelection();
         end
         
         % user selects colour
@@ -137,6 +137,10 @@ classdef CameraClass < handle
             f = msgbox(["Depth value is: ", num2str(self.ballCentroid(3))])';
             waitfor(f);                        
         end 
+        
+        function [colour] = getColour(self)
+            colour = self.selectedColour;
+        end
         
     end
     
