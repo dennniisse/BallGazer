@@ -18,8 +18,8 @@ classdef CameraClass < handle
     methods
         % constructorcam
         function self = CameraClass()
-            self.getDepthData();
-            self.ColourDetection();
+%             self.getDepthData();
+%             self.ColourDetection();
 %             self.plotDepthImage();
 %             self.manualDepthSelection();
         end

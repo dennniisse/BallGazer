@@ -6,31 +6,25 @@ classdef BallLoading < handle
     %       2. Choose the colour of the ball
     %       3. Finally, the racket moves towards the ball
     
-    properties (Constant)
-        %> Max height is for plotting of the workspace
-%         maxHeight = 1;
-        
-        %> Number of ball
-        ballsCount = 2;
-        
-        %Initial location of the ball, for testing, set the ball location
-        % at (0 0 0)
-         ball_offset = transl([0 0 0]);
-    end
-    
     properties
+        %> Number of ball
+        ballsCount = 2;      
+        %Initial location of balls
+        red_ball_offset = transl([-0.25 -1 0.9267]);
+        blue_ball_offset = transl([-0.25 -1.05 0.9267]);
+        
         ballE;
-        
-        workspaceDimensions;
-        
+        workspaceDimensions;        
         base_location = [0.2 0.2 0];
     end
        
     methods
-        %% strucktos
-        function self = BallLoading(base_location)
+        %% strucktors
+        function self = BallLoading
             
             self.workspaceDimensions = [-0.6 0.6 -2 0.5 0 2];
+            self.red_ball_offset();
+            self.blue_ball_offset();
             
             %Create balls required
             for i = 1:1:self.ballsCount
@@ -38,15 +32,8 @@ classdef BallLoading < handle
                 self.ballE{i} = self.GetBallModel(['ball', num2str(i)]);
                 
                  % Default spawn
-                self.ballE{i}.base = transl(base_location(1) + (0.09*i) - 0.09, base_location(2), base_location(3)) * trotx(0) * troty(0) * trotz(0);
-%                 if i == 2 % need to consider the size of the ball
-%                     self.ballE{i}.base = transl(base_location(1) + -0.1, ...
-%                     base_location(2), base_location(3));
-%                 end
-%                 if i == 3 % need to consider the size of the ball 
-%                     self.ballE{i}.base = transl(base_location(1) + -0.05, ...
-%                     base_location(2), base_location(3));
-%                 end
+                self.ballE{i}.base = transl([0.15 -0.4 0.9267]);
+
             end
         end
     end    
@@ -56,8 +43,7 @@ classdef BallLoading < handle
          function model = GetBallModel(name)
              if nargin < 1
                  name = 'Ball';
-             end
-             
+             end            
 %              if ballsCount = 1
              [faceData, vertexData] = plyread('Red_Ball.ply','tri');
               %Get them to spawn with Z facing down?
@@ -67,6 +53,8 @@ classdef BallLoading < handle
 %             vertexData(:,2) = vertexData(:,2) + 0.4;
              model.points = {vertexData * rotx(0) * roty(0) * rotz(0),[]};
 %              end
+         end
+         function uploadCorrectColour(self,colour)
          end
      end
 end

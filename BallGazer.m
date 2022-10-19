@@ -10,9 +10,14 @@ hold on;
 % set(0,'DefaultFigureWindowStyle','docked');
 
 disp('ENVIRONMENT SPAWNING...');
-PlaceObject("enviornment_SnC.ply",[0,0,0]);
+PlaceObject("environment_SnC.ply",[0,0,0]);
 % disp('ENVIRONMENT SPAWNING...');
 test = UR3([0,0,0.9397]);
-PlaceObject("Red_Ball.ply", [0 -0.75 0.9267]);
+% PlaceObject("Red_Ball.ply", [0.15 -0.4 0.9267]);
+% PlaceObject("Blue_Ball.ply", [-0.15 -0.4 0.9267]);
+PlaceObject("Red_Ball.ply", [-0.25 -1 0.9267]);
+PlaceObject("Blue_Ball.ply", [-0.25 -1.05 0.9267]);
+
+ball.uploadCorrectColour(s.getColour)
 
 test.model.teach();
