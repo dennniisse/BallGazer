@@ -73,7 +73,8 @@ classdef ROS_UR3 < handle
             goal.Trajectory.Header.Stamp = jointStateSubscriber.LatestMessage.Header.Stamp + rosduration(bufferSeconds);
             sendGoal(client,goal);  
 
-            pause(2);
+            pause(bufferSeconds + durationSeconds + 0.5);
+            disp('ROS: Complete!');
         end
         
 
