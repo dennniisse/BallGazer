@@ -1,4 +1,5 @@
 %% 41014 SPR2022 - Ball Gazers
+%%Showcazer: Written to showcase certain movements
 %  Ashwin COBURN (12963690)
 %  Denisse FERNANDEZ (13214489)
 %  Hee CHAN-KWON (13006010)

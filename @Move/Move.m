@@ -87,7 +87,7 @@ classdef Move < handle
         
         %% Move One Arm [T2]
         %Moves the arm to a position, no gripper robot attached
-        function qMatrixFinal_Arm1 = OneArm_T2(model_Arm1,q1_Arm1,T2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause)
+        function qMatrixFinal_Arm1 = OneArm_T2(model_Arm1,q1_Arm1,T2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,enableROS,durationSeconds,bufferSeconds,jointStateSubscriber)
             
             T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);        
             q2_Arm1 = model_Arm1.model.ikcon(T2_Arm1,q1_Arm1); %Consider joint limits and initial joint angles
@@ -111,13 +111,17 @@ classdef Move < handle
             end
 
             qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
+
+            if enableROS == true %If UR3 and ROS are enabled
+                ROS_UR3.SendJointAngles(qMatrixFinal_Arm1,durationSeconds,bufferSeconds,jointStateSubscriber);
+            end
             
             disp('Complete!');
         end
         
         %% Move One Arm [q2]
         %Moves the arm to a position, no gripper robot attached
-        function qMatrixFinal_Arm1 = OneArm_q2(model_Arm1,q1_Arm1,q2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,considerJointAngles)
+        function qMatrixFinal_Arm1 = OneArm_q2(model_Arm1,q1_Arm1,q2_Arm1,interpMethod_Arm1,steps_Arm1,animationPause,considerJointAngles,enableROS,durationSeconds,bufferSeconds,jointStateSubscriber)
             
             if considerJointAngles == true
                 T1_Arm1 = model_Arm1.model.fkine(q1_Arm1);        
@@ -148,6 +152,10 @@ classdef Move < handle
 
             qMatrixFinal_Arm1 = qMatrixArm1(steps_Arm1,:); %Remember Last Q
             
+            if enableROS == true %If UR3 and ROS are enabled
+                ROS_UR3.SendJointAngles(qMatrixFinal_Arm1,durationSeconds,bufferSeconds,jointStateSubscriber);
+            end
+
             disp('Complete!');
         end
         
