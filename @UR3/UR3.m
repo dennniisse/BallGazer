@@ -40,8 +40,8 @@ classdef UR3 < handle
             L5 = Link('d',0.08535,'a',0,'alpha',-pi/2,'qlim',deg2rad([-360,360]), 'offset',0);
             %             L6 = Link('d',(0.0819 + 0.092),'a',0,'alpha',0,'qlim',deg2rad([-360,360]), 'offset', 0);
             L6 = Link('d',0.0819,'a',0,'alpha',0,'qlim',deg2rad([-360,360]), 'offset', 0);
-            L7 = Link('d', 0, 'a', 0, 'alpha', 0, 'qlim',[0 0],'offset',0);
-            self.model = SerialLink([L1 L2 L3 L4 L5 L6 L7],'name',name);
+%             L7 = Link('d', 0, 'a', 0, 'alpha', 0, 'qlim',[0 0],'offset',0);
+            self.model = SerialLink([L1 L2 L3 L4 L5 L6],'name',name);
             self.model.delay = 0;
             self.model.base = self.model.base * transl(self.base_location(1), self.base_location(2), (self.base_location(3)+self.offsetTable));
             %             self.model.base = self.model.base * trotx(pi/2) * troty(pi/2);
