@@ -3,7 +3,7 @@ red = 1;
 green = 2;
 blue = 3;
 
-depthSub = rossubscriber('/camera/depth/image_rect_raw');
+depthSub = rossubscriber('/camera/aligned_depth_to_color/image_raw');%('/camera/depth/image_rect_raw');
 depthMsg = receive(depthSub,10);
 depthData = readImage(depthMsg);
 
@@ -11,12 +11,12 @@ depthData = readImage(depthMsg);
 rgbSub = rossubscriber('/camera/color/image_raw');
 rgbMsg = receive(rgbSub,10); 
 rgbData = readImage(rgbMsg);
-rgbScaled = imresize(rgbData, size(depthData));
+rgbScaled = readImage(rgbMsg); %imresize(rgbData, size(depthData));
 figure('NumberTitle', 'off', 'Name', 'RGB Image');
 hold on;
 
 imshow(rgbScaled);
-axis on; 
+axis on; axis equal;
 hold on;
 diff_im = imsubtract(rgbScaled(:,:,red), rgb2gray(rgbScaled)); % filter for the colour
 % Use a median filter to filter out noise
@@ -42,7 +42,7 @@ bc = stats(object).Centroid;
 disp(['Centroid',num2str(bc(1)),num2str(bc(2))]);
 X = round(bc(1))
 Y = round(bc(2))
-Z = depthData(X:Y)
+Z = depthData(Y,X)
 hold off;
 figure('NumberTitle', 'off', 'Name', 'Depth Image');
 imshow(depthData);
@@ -59,7 +59,7 @@ fy_rgb = rgbIntrinsic.K(5);
 cx_rgb = rgbIntrinsic.K(3);
 cy_rgb = rgbIntrinsic.K(6);
 
-depthIntrinsicSub = rossubscriber('/camera/depth/camera_info');
+depthIntrinsicSub = rossubscriber('/camera/aligned_depth_to_color/camera_info');
 dIntrinsic = receive(depthIntrinsicSub,2);
 fx_d = dIntrinsic.K(1);
 fy_d = dIntrinsic.K(5);

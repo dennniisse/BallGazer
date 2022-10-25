@@ -29,12 +29,14 @@ classdef BallLoading < handle
     methods
         %% strucktos
         function self = BallLoading(base_location,colour)
-            hold on; 
+            
+            self.workspaceDimensions = [-0.6 0.6 -2 0.5 0 2];
+            
             switch colour
                 case 'red'
-                    self.ballE = PlaceObject("Red_Ball.ply", [base_location(1) base_location(2) base_location(3)]);
+                    self.ballE = PlaceObject("Red_Ball.ply", [base_location(1) base_location(2) 0]);
                 case 'blue'
-                    self.ballE = PlaceObject("Blue_Ball.ply", [base_location(1) base_location(2) base_location(3)]);                    
+                    self.ballE = self.GetBallModel('Blue_Ball.ply');                    
             end
             
             
