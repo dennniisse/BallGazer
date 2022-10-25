@@ -70,11 +70,7 @@ classdef UR3 < handle
             end
 
             % Display robot
-<<<<<<< Updated upstream
-            starting_q_UR3 = [0 deg2rad(270) 0 deg2rad(270) 0 0]; %Set Starting Pose
-=======
             starting_q_UR3 = [0 deg2rad(-90) 0 deg2rad(-90) 0 0]; %Set Starting Pose - Same as real UR3
->>>>>>> Stashed changes
             self.model.plot3d(starting_q_UR3(1,:),'noarrow','workspace',self.workspace);
             if isempty(findobj(get(gca,'Children'),'Type','Light'))
                 camlight

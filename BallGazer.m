@@ -10,7 +10,7 @@ hold on;
 % set(0,'DefaultFigureWindowStyle','docked');
 
 %% Set Ball Locations & Enable ROS Here
-enableROS = true;
+enableROS = false;
 
 overrideLocations = true;
 redBallLocation = [0.35, 0.2, 1.125];
