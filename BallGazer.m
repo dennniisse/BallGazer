@@ -11,12 +11,13 @@ hold on;
 
 %% Set Ball Locations & Enable ROS Here
 enableROS = false;
-
-overrideLocations = true;
+overrideLocations = false; % comment false to use camera location, comment true to use preset location
 redBallLocation = [0.35, 0.2, 1.125];
 blueBallLocation = [0.35, -0.2, 1.125];
 
-
+%% Run camera class and obtain the data of the environment
+% Initialise camera functions
+camera = CameraClass(); % create camera object, will record location of selected colour
 %% Variables
 UR3_base_location = [0,0,1];
 
@@ -39,7 +40,7 @@ blue = 0;
 ballChosen = red;
 xOffset = -0.7;
 
-%% Initialise ROS
+%% Initialise ROS: if ROSinit for camera is runnning, shut it down, data is already recorded in the object class
 if enableROS == true
     rosshutdown;
     disp(['ROS: Connecting to ',IP,'...']);
@@ -62,8 +63,8 @@ disp('Environment Spawning...');
 PlaceObject("environment_SnC.ply",[0,0,0]);
 disp('Complete!');
 disp('Balls Spawning...');
-PlaceObject("Red_Ball.ply", redBallLocation);
-PlaceObject("Blue_Ball.ply", blueBallLocation);
+redball_h = PlaceObject("Red_Ball.ply", redBallLocation);
+blueball_h = PlaceObject("Blue_Ball.ply", blueBallLocation);
 disp('Complete...');
 Paddler = UR3(UR3_base_location);
 %Set MATLAB UR3 to match Real UR3
@@ -78,45 +79,48 @@ end
 %% Run
 taskFinished = false;
 while taskFinished == false
-
-    %%GUI Selection
-    opts.Interpreter = 'tex';
-    % Include the desired Default answer
-    opts.Default = 'Red';
-    % Use the TeX interpreter to format the question
-    quest = 'Select Task or Target';
-    answer = questdlg(quest, '41013 AS1', 'Red','Blue','Finish', opts);
-
-    switch answer
-        case 'Blue'
-            ballChosen = blue;
-            disp('Ball Chosen: Blue');
-        case 'Red'
-            ballChosen = red;
-            disp('Ball Chosen: Red');
-        case 'Finish'
-            taskFinished = true;
-    end
-
+    ballChosen = camera.getColour;
+    
+    %     %%GUI Selection
+    %     opts.Interpreter = 'tex';
+    %     % Include the desired Default answer
+    %     opts.Default = 'Red';
+    %     % Use the TeX interpreter to format the question
+    %     quest = 'Select Task or Target';
+    %     answer = questdlg(quest, '41013 AS1', 'Red','Blue','Finish', opts);
+    %
+    %     switch answer
+    %         case 'Blue'
+    %             ballChosen = blue;
+    %             disp('Ball Chosen: Blue');
+    %         case 'Red'
+    %             ballChosen = red;
+    %             disp('Ball Chosen: Red');
+    %         case 'Finish'
+    %             taskFinished = true;
+    %     end
     if taskFinished == false
-
         %% Get XYZ location of ball from realsense camera
-        if overrideLocations == true
+        if overrideLocations == true % override Locations from camera class with preset values
             if ballChosen == blue
                 ballLocation = transl(blueBallLocation);
             else %ballChosen == red
                 ballLocation = transl(redBallLocation);
             end
-        else
-            %DENISE'S CODE HERE
-            % ball.uploadCorrectColour(s.getColour)
-            % ballLocation = function
-            % ballLocation = (ballLocation(1),ballLocation(2),ballLocation(3));
-
-            %[DELETE THIS]Something to allow movement testing
-            %Warning, these cause the end effector to aim up. trotx(pi) to aim down
+        else % using camera class upload into world
+            ballLocation = camera.GetLocation();
+            ballLocation = transl([ballLocation(1) ballLocation(2) ballLocation(3)]);
+            switch ballChosen
+                case 1 % RED
+                    delete(redball_h);
+                    redball_h = PlaceObject("Red_Ball.ply", ballLocation(1:3,4)');
+                case 3 %'BLUE'
+                    delete(blueball_h);
+                    blueball_h = PlaceObject("Blue_Ball.ply", ballLocation(1:3,4)');
+                    disp('I AM YOUR FATHER');
+            end
         end
-
+        
         %% (2 Movements) Prepare and move the UR3 to Waypoint 1
         if ballLocation(2,4) >= 0
             q2_UR3 = [deg2rad(-178) deg2rad(-90) 0 deg2rad(-90) 0 0];
@@ -136,21 +140,20 @@ while taskFinished == false
         q1_UR3 = Move.OneArm_T2(Paddler,q1_UR3,T2_UR3,TVP,steps_Arm_UR3,animationPause,enableROS,durationSeconds,bufferSeconds,jointStateSubscriber);
         
         %IR Waypoint: T2 = transl(-0.225,0, 0.005)*trotx(pi);
-
         %% Move the UR3 to next to Ball Location
         T2_UR3 = ballLocation*trotx(pi/2)*troty(deg2rad(30));
         % Y Offset
-%         T2_UR3 = T2_UR3 * transl(xOffset,0,0);
-
+        %         T2_UR3 = T2_UR3 * transl(xOffset,0,0);
+        
         q1_UR3 = Move.OneArm_T2(Paddler,q1_UR3,T2_UR3,TVP,steps_Arm_UR3,animationPause,enableROS,durationSeconds,bufferSeconds,jointStateSubscriber);
-
+        
         %% Turn the UR3 Racket to Hit the Ball
         T2_UR3 = T2_UR3 * troty(deg2rad(90));
-
+        
         q1_UR3 = Move.OneArm_T2(Paddler,q1_UR3,T2_UR3,TVP,steps_Arm_UR3,animationPause,enableROS,durationSeconds,bufferSeconds,jointStateSubscriber);
-
+        
         %% Move the UR3 Back to Waypoint 1
-        if ballLocation(2,4) >= 0 
+        if ballLocation(2,4) >= 0
             T2_UR3 = transl(UR3_base_location(1) + 0.4,...     %X
                 UR3_base_location(2) + 0.20,... %Y
                 UR3_base_location(3) + 0.3) ... %Z
@@ -161,10 +164,29 @@ while taskFinished == false
                 UR3_base_location(3) + 0.3) ... %Z
                 *trotx(pi/2)*troty(pi/2);
         end
-
+        
         q1_UR3 = Move.OneArm_T2(Paddler,q1_UR3,T2_UR3,TVP,steps_Arm_UR3,animationPause,enableROS,durationSeconds,bufferSeconds,jointStateSubscriber);
         %IR Waypoint: T2 = transl(-0.225,0, 0.005)*trotx(pi);
     end
+    
+        
+    
+        %%GUI Selection
+    opts.Interpreter = 'tex';
+    % Include the desired Default answer
+    opts.Default = 'Reselect';
+    % Use the TeX interpreter to format the question
+    quest = 'Select Task or Target';
+    answer = questdlg(quest, '41013 AS1', 'Reselect','Finish', opts);
+
+    switch answer
+        case 'Reselect'    
+            camera.RecalculateLocation();
+            ballChosen = camera.getColour;
+        case 'Finish'
+            taskFinished = true;
+    end
+    
 end
 
 %% Move the UR3 back to Starting Pose

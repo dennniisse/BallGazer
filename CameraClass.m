@@ -9,28 +9,29 @@ classdef CameraClass < handle
         green = 2;
         blue = 3;
         selectedColour = 1;
-        ballCentroid = [0 0 0];
+        ballCentroid = [0.35, -0.2, 1.125];
         rgbData; rgbScaled;
         depthData;
     end
-
+    
     
     methods
         % constructorcam
         function self = CameraClass()
-<<<<<<< HEAD
-            self.getDepthData();
-            self.ColourDetection();
-            self.plotDepthImage();
-            self.autoDepthSelection();
-=======
 %             self.getDepthData();
 %             self.ColourDetection();
 %             self.plotDepthImage();
-%             self.manualDepthSelection();
->>>>>>> 1cb6f061505595f2fdaa4d34c2da4393c0f5dedd
+%             self.autoDepthSelection();
         end
         
+        function RecalculateLocation(self)
+            self.selectColour();
+            self.ballCentroid = [0.35, 0.2, 1.125];
+            %             self.getDepthData();
+            %             self.ColourDetection();
+            %             self.plotDepthImage();
+            %             self.autoDepthSelection();
+        end
         % user selects colour
         function [colour_selected] = selectColour(self)
             opts.Interpreter = 'tex';
@@ -42,7 +43,7 @@ classdef CameraClass < handle
                 case 'Random'
                     val = round(1+(2-1).*rand(1,1));
                     if val == 2
-                        self.selectedColour = self.blue; 
+                        self.selectedColour = self.blue;
                         colour = 'RANDOM = BLUE';
                     elseif val == 1
                         self.selectedColour = self.red;
@@ -54,14 +55,14 @@ classdef CameraClass < handle
                     colour = 'RED';
                     
                 case 'Blue'
-                    self.selectedColour = self.blue;  
+                    self.selectedColour = self.blue;
                     colour = 'BLUE';
-            end            
+            end
             
             colour_selected = self.selectedColour;
             f = msgbox(["The selected colour is: ", colour])';
             waitfor(f);
-      
+            
         end
         
         function ColourDetection(self)
@@ -75,7 +76,7 @@ classdef CameraClass < handle
             % transform the message into a readable image
             self.rgbData = readImage(rgbMsg);
             self.rgbScaled = readImage(rgbMsg); % note we don't to sclae it anymore as the images are aligned
-%             self.rgbScaled = imresize(self.rgbData, size(self.depthData));
+            %             self.rgbScaled = imresize(self.rgbData, size(self.depthData));
             % open figure to display the image on and display the image
             figure('NumberTitle', 'off', 'Name', 'RGB Image');
             imshow(self.rgbScaled);
@@ -95,7 +96,7 @@ classdef CameraClass < handle
             % properties for each 8 connected object in the bw_img, we get
             % the centroid and location for bounding box
             stats = regionprops(bw, 'BoundingBox', 'Centroid');
-            % then plot the bounding box using the data from stats 
+            % then plot the bounding box using the data from stats
             for object = 1:length(stats)
                 boundBox = stats(object).BoundingBox;
                 ballCentroid = stats(object).Centroid;
@@ -109,10 +110,11 @@ classdef CameraClass < handle
             hold off;
         end
         % returns the x y z location of the ball
-        function [x y z] = GetLocation(self)
+         function [ballLocation] = GetLocation(self)
             x = self.ballCentroid(1);
             y = self.ballCentroid(2);
             z = self.ballCentroid(3);
+            ballLocation = [x y z];
         end
         
         
@@ -120,24 +122,24 @@ classdef CameraClass < handle
             depthSub = rossubscriber('/camera/aligned_depth_to_color/image_raw');
             depthMsg = receive(depthSub,10);
             self.depthData = readImage(depthMsg);
-%             figure('NumberTitle', 'off', 'Name', 'Depth Image');
-%             imshow(self.depthData);     
-%             hold on; axis on;
-%             
-%             hold off;
+            %             figure('NumberTitle', 'off', 'Name', 'Depth Image');
+            %             imshow(self.depthData);
+            %             hold on; axis on;
+            %
+            %             hold off;
         end
         
         function plotDepthImage(self)
-            figure('NumberTitle', 'off', 'Name', 'Depth Image');        
+            figure('NumberTitle', 'off', 'Name', 'Depth Image');
             imshow(self.depthData);
             hold on; plot(self.ballCentroid(1),self.ballCentroid(2),'-m+');
-            axis on; axis equal;            
+            axis on; axis equal;
             hold off;
         end
         
         function autoDepthSelection(self)
             self.ballCentroid(3) = self.depthData(self.ballCentroid(2),self.ballCentroid(1));
-%             disp(['z is',num2str(self.ballCentroid(3))]);
+            %             disp(['z is',num2str(self.ballCentroid(3))]);
         end
         function manualDepthSelection(self)
             f = msgbox('Find depth, input box will pop up in 15 seconds')';
@@ -145,11 +147,11 @@ classdef CameraClass < handle
             delete(f);
             prompt = {'Enter the depth obtained from the depth map in mm'};
             dlgtitle = 'Depth (mm)';
-            answer = inputdlg(prompt,dlgtitle); 
+            answer = inputdlg(prompt,dlgtitle);
             self.ballCentroid(3) = str2num(answer{1});
             f = msgbox(["Depth value is: ", num2str(self.ballCentroid(3))])';
-            waitfor(f);                        
-        end 
+            waitfor(f);
+        end
         
         function [colour] = getColour(self)
             colour = self.selectedColour;
