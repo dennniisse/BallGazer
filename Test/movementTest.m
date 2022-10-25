@@ -1,6 +1,7 @@
 close all; clf; clc; clear;
 base = eye(4);
-ball = PlaceObject("Red_Ball.ply",[0 -0.25 1.3]);
+ball = PlaceObject("Red_Ball.ply",[0 -0.35 1.3]);
+PlaceObject("environment_SnC.ply",[0,0,0]);
 ur3 = UR3(base);
 move = Move();
 q1 = ur3.model.getpos;

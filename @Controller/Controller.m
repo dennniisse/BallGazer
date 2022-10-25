@@ -47,7 +47,7 @@ classdef Controller
             %%Setup joystick
             self.id = id; % NOTE: may need to change if multiple joysticks present
             self.player(id) = true;
-            disp(['Player ', ]);
+            disp(['Player ', num2str(id)]);
 
             self.joy = vrjoystick(self.id,'forcefeedback'); %Try force feedback
             self.joy_info = caps(self.joy); % print joystick information
