@@ -60,8 +60,8 @@ classdef UR3 < handle
         % Given a robot index, add the glyphs (vertices and faces) and
         % colour them in if data is available 
         function PlotAndColourRobot(self)%robot,workspace)
-            for linkIndex = 0:self.model.n
-                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3link_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>                
+            for linkIndex = 0:1:self.model.n
+                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>                
                 self.model.faces{linkIndex + 1} = faceData;
 %                 if linkIndex == self.model.n
 %                     vertexData(:,3) = vertexData(:,3) - 0.092; %Offset End Effector
