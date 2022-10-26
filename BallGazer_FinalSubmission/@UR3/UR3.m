@@ -12,6 +12,7 @@ classdef UR3 < handle
     
     methods%% Class for UR3 robot simulation
         function self = UR3(base_location)
+            hold on;
             
             disp('Spawning UR3...');
             

@@ -18,9 +18,12 @@ blueBallLocation = [0.35, -0.2, 1.125];
 %% Run camera class and obtain the data of the environment
 % Initialise camera functions
 camera = CameraClass(); % create camera object, will record location of selected colour
-%% Variables
-UR3_base_location = [0,0,1];
+hold off; 
+figure(); hold on;
+%% Variablesfigure(5); hold on; axis equal;
 
+UR3_base_location = [0,0,1];
+hold on; axis equal; axis on;
 %ROS Variables
 jointNames = {'shoulder_pan_joint','shoulder_lift_joint', 'elbow_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'};
 IP = '192.168.0.253';
@@ -59,6 +62,7 @@ else
 end
 
 %% Spawn Everything
+hold on;
 disp('Environment Spawning...');
 PlaceObject("environment_SnC.ply",[0,0,0]);
 disp('Complete!');
@@ -112,12 +116,11 @@ while taskFinished == false
             ballLocation = transl([ballLocation(1) ballLocation(2) ballLocation(3)]);
             switch ballChosen
                 case 1 % RED
-                    delete(redball_h);
+                    delete(redball_h); hold on;
                     redball_h = PlaceObject("Red_Ball.ply", ballLocation(1:3,4)');
                 case 3 %'BLUE'
-                    delete(blueball_h);
+                    delete(blueball_h); hold on;
                     blueball_h = PlaceObject("Blue_Ball.ply", ballLocation(1:3,4)');
-                    disp('I AM YOUR FATHER');
             end
         end
         

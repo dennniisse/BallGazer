@@ -14,7 +14,6 @@ classdef CameraClass < handle
         depthData;
         boundBox;
         fx; fy; cx; cy; % parameters
-        cam2ur3dist = 1100; % in cm, transfer into real world coordinates
     end
     
     
@@ -114,12 +113,11 @@ classdef CameraClass < handle
             hold off;
         end
         % returns the x y z location of the ball
-        function [ballLocation] = GetLocation(self)
-            z = self.ballCentroid(3); 
-            % u v to real world parameters
-            x = (self.ballCentroid(1)-self.cx)*z / self.fx;
-            y = (self.ballCentroid(2)-self.cy)*z / self.fy;
-            z = self.cam2ur3dist - self.ballCentroid(3); % ur3 base is the 0 0 0 of the real world
+         function [ballLocation] = GetLocation(self)         
+            % u v
+            x = self.ballCentroid(1);
+            y = self.ballCentroid(2);
+            z = self.ballCentroid(3);
             ballLocation = [x y z];
         end
         
@@ -148,15 +146,14 @@ classdef CameraClass < handle
             self.ballCentroid(3) = self.depthData(self.ballCentroid(2),self.ballCentroid(1));
             figure('NumberTitle', 'off', 'Name', 'Depth Image');
             imshow(self.depthData);
-            pause(1); % needed to give matlab time to register
+            pause(2); % needed to give matlab time to register
             hold on; axis on; hold on;      
             rectangle('Position',self.boundBox,'EdgeColor','r','LineWidth',2)
             plot(self.ballCentroid(1),self.ballCentroid(2), '-m+')
             a=text(self.ballCentroid(1)+15,self.ballCentroid(2), strcat('X: ', num2str(round(self.ballCentroid(1))), ' Y: ', num2str(round(self.ballCentroid(2))), ' Z: ', num2str(round(self.ballCentroid(3)))));
             set(a, 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 12, 'Color', 'white');           
-            hold off;
-            pause(1);
-            %             disp(['figis',num2str(self.ballCentroid(3))]);
+            
+            %             disp(['z is',num2str(self.ballCentroid(3))]);
         end
         function manualDepthSelection(self)
             f = msgbox('Find depth, input box will pop up in 15 seconds')';
