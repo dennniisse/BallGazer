@@ -118,8 +118,11 @@ classdef CameraClass < handle
             z = self.ballCentroid(3); 
             % u v to real world parameters
             x = (self.ballCentroid(1)-self.cx)*z / self.fx;
+            x = x / 100;% cm 2 m
             y = (self.ballCentroid(2)-self.cy)*z / self.fy;
+            y = y / 100;% to m
             z = self.cam2ur3dist - self.ballCentroid(3); % ur3 base is the 0 0 0 of the real world
+            z = z / 100; % to m
             ballLocation = [x y z];
         end
         
