@@ -1,6 +1,0 @@
-roscore
-cd <where your bag is>
-rosbag play <bag.name> -l (endless loop)
-rosrun rviz rviz
-# set the global frame
-# "add" option to add features we want, we can find pointcloud2
